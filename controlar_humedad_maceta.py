@@ -3,7 +3,7 @@ import serial
 import time
 
 #Lectura de los puertos seriales de Arduino
-
+#El puerto está vacio ya que no tengo aún Arduino
 ser = serial.Serial('', 9600)
 time.sleep(2)
 
@@ -47,6 +47,7 @@ class ControladorHumedadMacetaGrande(ControladorHumedadMaceta):
         
 # Humedad de Arduino
 humedad1, humedad2, humedad3 = reading_humidity()
+value_maceta1, value_maceta2, value_maceta3 = False
 
 #Prueba
 maceta_hibisco = ControladorHumedadMacetaPequena(1, any, MACETA_PEQUENA_HUMEDAD, humedad1)
@@ -54,11 +55,23 @@ maceta_palmera = ControladorHumedadMacetaMediana(2, any, MACETA_MEDIANA_HUMEDAD,
 maceta_tomate = ControladorHumedadMacetaGrande(3, any, MACETA_GRANDE_HUMEDAD, humedad3)
 
 #Bloque lógico
-if maceta_hibisco.need_water():
-    print(f'Hibisco necesita agua => {maceta_hibisco.humedad_actual}')
-    
-if maceta_palmera.need_water():
-    print(f'Palmera necesita agua => {maceta_palmera.humedad_actual}')
-    
-if maceta_tomate.need_water():
-    print(f'Tomates necesitan agua => {maceta_tomate.humedad_actual}')
+def maceta_aviso():
+    if maceta_hibisco.need_water():
+        print(f'Hibisco necesita agua => {maceta_hibisco.humedad_actual}')
+        
+    if maceta_palmera.need_water():
+        print(f'Palmera necesita agua => {maceta_palmera.humedad_actual}')
+        
+    if maceta_tomate.need_water():
+        print(f'Tomates necesitan agua => {maceta_tomate.humedad_actual}')
+        
+
+def maceta_necesita_regada():
+    if maceta_hibisco.need_water():
+        return value_maceta1
+        
+    if maceta_palmera.need_water():
+        return value_maceta2
+        
+    if maceta_tomate.need_water():
+        return value_maceta3
