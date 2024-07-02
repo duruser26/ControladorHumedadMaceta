@@ -1,6 +1,16 @@
 #IMPORT BLOCK
-import serial.tools.list_ports
-from time import sleep
+import serial
+import time
+
+#Lectura de los puertos seriales de Arduino
+
+ser = serial.Serial('', 9600)
+time.sleep(2)
+
+def reading_humidity():
+    linea = ser.readline().decode('utf-8').strip()
+    humedad1, humedad2, humedad3 = map(int, linea.split(","))
+    return humedad1, humedad2, humedad3
 
 #CONST BLOCK
 MACETA_PEQUENA_HUMEDAD = 20
@@ -16,6 +26,9 @@ class ControladorHumedadMaceta:
         self.humedad_maxima = humedad_maxima
         self.humedad_minima = humedad_minima
         self.humedad_actual = humedad_actual
+        
+    def need_water(self):
+        return self.humedad_actual <= self.humedad_minima
 
 #HERENCIA
 class ControladorHumedadMacetaPequena(ControladorHumedadMaceta):
@@ -32,35 +45,20 @@ class ControladorHumedadMacetaGrande(ControladorHumedadMaceta):
     def __init__(self, numero_maceta, humedad_maxima, humedad_minima, humedad_actual):
         super().__init__(numero_maceta, humedad_maxima, humedad_minima, humedad_actual)
         
-# Variables temporales. La maceta queda definida en función de su
-# controlador de humedad
-
-#Numero de maceta
-n_x = 1
-n_y = 2
-n_z = 3
-
-#Humedad actual
-lectura_sensor_humedad = serial.tools.list_ports.comports()
-serialInst = serial.Serial()
-lista_lecturas = []
-
-#Extraccion en variables separadas
-for lectura in lectura_sensor_humedad:
-    lista_lecturas.append(int(lectura))
-    sleep(3600)
+# Humedad de Arduino
+humedad1, humedad2, humedad3 = reading_humidity()
 
 #Prueba
-maceta_hibisco = ControladorHumedadMacetaPequena(n_x, 100, MACETA_PEQUENA_HUMEDAD, lista_lecturas[0])
-maceta_palmera = ControladorHumedadMacetaMediana(n_y, 150, MACETA_MEDIANA_HUMEDAD, lista_lecturas[1])
-maceta_tomate = ControladorHumedadMacetaGrande(n_z, 200, MACETA_GRANDE_HUMEDAD, lista_lecturas[2])
+maceta_hibisco = ControladorHumedadMacetaPequena(1, any, MACETA_PEQUENA_HUMEDAD, humedad1)
+maceta_palmera = ControladorHumedadMacetaMediana(2, any, MACETA_MEDIANA_HUMEDAD, humedad2)
+maceta_tomate = ControladorHumedadMacetaGrande(3, any, MACETA_GRANDE_HUMEDAD, humedad3)
 
 #Bloque lógico
-if maceta_hibisco.humedad_minima >= maceta_hibisco.humedad_actual:
+if maceta_hibisco.need_water():
     print(f'Hibisco necesita agua => {maceta_hibisco.humedad_actual}')
     
-if maceta_palmera.humedad_minima >= maceta_palmera.humedad_actual:
+if maceta_palmera.need_water():
     print(f'Palmera necesita agua => {maceta_palmera.humedad_actual}')
     
-if maceta_tomate.humedad_minima >= maceta_tomate.humedad_actual:
+if maceta_tomate.need_water():
     print(f'Tomates necesitan agua => {maceta_tomate.humedad_actual}')
